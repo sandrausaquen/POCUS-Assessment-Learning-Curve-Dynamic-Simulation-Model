@@ -1,0 +1,88 @@
+###################################################################
+
+####  			LCUSUM Curve Simulator               ######
+
+###################################################################
+
+
+
+LCusum=function(xt,p0,p1,St.ant){
+  
+  wt=ifelse(xt==0 ,log((1-p1)/(1-p0)),log(p1/p0))
+  
+  St=max(0,St.ant+wt)
+  
+  return(St)
+  
+}
+
+
+
+SARL.LCUSUM<-function(H,p,p0,p1,N.sim=10000){
+  
+  RL=0;
+  
+  for(i in (1:N.sim)){
+    
+    Alarm=F
+    
+    St=0;rl=0
+    
+    while(Alarm==F){
+      
+      rl=rl+1
+      
+      x=rbinom(1,1,p)
+      
+      St[rl]=ifelse(rl==1,LCusum(x,p0,p1,0),LCusum(x,p0,p1,St[rl-1]))
+      
+      Alarm=ifelse(St[rl]<H,F,T)}
+    
+    RL[i]=rl}
+  
+  ARL=mean(RL)
+  
+  return(ARL)
+  
+}
+
+
+
+##Evaluation ARL0 and ARL1 for one case (p0,p1,H)
+
+
+
+p0=0.175; p1=0.1
+
+H=1.25
+
+res=round(c(SARL.LCUSUM(H,p0,p0,p1,N.sim=10000),SARL.LCUSUM(H,p1,p0,p1,N.sim=10000)),0)
+
+names(res)=c("ARL0","ARL1")
+
+
+
+res
+
+
+##Evaluation ARL0 and ARL1 for cases table 1
+
+p0=c(0.10,0.15); p1=0.15;ARL0=NA;ARL1=NA
+
+H=seq(0,4.25,0.25)
+
+cases= expand.grid(H=H,p0=p0,p1=p1,ARL0=ARL0,ARL1=ARL1)
+
+
+
+for(i in 1:nrow(cases)){
+  
+  
+  
+  cases[i,4:5]=with(cases,round(c(SARL.LCUSUM(H[i],p0[i],p0[i],p1[i],N.sim=10000),SARL.LCUSUM(H[i],p1[i],p0[i],p1[i],N.sim=10000)),1))
+  
+  print(cases[i,])
+  
+}
+
+
